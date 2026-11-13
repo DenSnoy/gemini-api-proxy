@@ -1,38 +1,66 @@
-"""Check Gemini model-list access without exposing the API key in logs."""
+"""Diagnose Gemini API authorization without revealing credential values.
+
+Official Gemini API key methods: x-goog-api-key, or ?key=.
+Does not use OAuth, does not log or print secret content.
+"""
 import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 
-key = os.environ.get("GEMINI_API_KEY")
+key = os.environ.get("GEMINI_API_KEY", "")
 if not key:
-    sys.exit("GEMINI_API_KEY secret is not configured")
-url = "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000"
-req = urllib.request.Request(url, headers={"x-goog-api-key": key}, method="GET")
-try:
-    with urllib.request.urlopen(req, timeout=20) as response:
-        result = json.load(response)
-        print(f"Gemini REST API model listing: HTTP {response.status}", flush=True)
-except urllib.error.HTTPError as error:
-    print(f"Gemini REST API model listing: HTTP {error.code}", flush=True)
-    try:
-        info = json.loads(error.read(16384)).get("error", {})
-        print("Google error status:", info.get("status", "unknown"), flush=True)
-        print("Google error message:", str(info.get("message", ""))[:250].replace(key, "[REDACTED]"), flush=True)
-        reasons = [d.get("reason") for d in info.get("details", []) if isinstance(d, dict) and d.get("reason")]
-        if reasons:
-            print("Google error reasons:", ", ".join(reasons), flush=True)
-        if error.code == 401:
-            print("401 does NOT imply that the key must start with AIza: modern AI Studio auth keys often start with AQ.", flush=True)
-            print("Check for an AQ auth-key provisioning issue or incorrect secret value; no OAuth or Google Cloud SDK is required for Gemini Developer API auth keys.", flush=True)
-    except Exception:
-        pass
-    sys.exit(1)
-except Exception as error:
-    sys.exit(f"Cannot reach the Gemini REST API: {type(error).__name__}")
+    sys.exit("GEMINI_API_KEY missing from GitHub Actions secrets")
 
-models = result.get("models", [])
-live_models = sorted(m.get("name", "") for m in models if "live" in m.get("name", "").lower() or "native-audio" in m.get("name", "").lower())
-print(f"Models visible to this API key: {len(models)}", flush=True)
-print("Live or native-audio model names:", ", ".join(live_models) if live_models else "(none in list response)", flush=True)
+print("Key exists in GitHub secret: yes")
+print("Key type:", "authorization (AQ)" if key.startswith("AQ.") else "standard (AIza)" if key.startswith("AIza") else "other / unexpectedly formatted")
+print("Leading/trailing whitespace:", "yes" if key != key.strip() else "no")
+print("Surrounding quotes:", "yes" if key[:1] in ("'", '"') or key[-1:] in ("'", '"') else "no")
+print("Embedded line breaks:", "yes" if "\n" in key or "\r" in key else "no")
+print("GOOGLE_API_KEY also present:", "yes" if bool(os.environ.get("GOOGLE_API_KEY")) else "no")
+print("Vertex AI explicitly enabled:", "yes" if os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").lower() in ("1", "true", "yes") else "no")
+
+base = "https://generativelanguage.googleapis.com"
+def probe(path, use_query):
+    url = base + path
+    headers = {"Accept": "application/json"}
+    if use_query:
+        url += ("&" if "?" in url else "?") + urllib.parse.urlencode({"key": key})
+    else:
+        headers["x-goog-api-key"] = key
+    req = urllib.request.Request(url, headers=headers, method="GET")
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            body = json.load(r)
+            print(f"Probe {path}, auth={'query' if use_query else 'header'}: HTTP {r.status}")
+            models = body.get("models", [])
+            live = [m.get("name") for m in models if ("live" in m.get("name", "").lower() or "native-audio" in m.get("name", "").lower())]
+            if live:
+                print("Visible Live models:", ", ".join(live))
+            return True
+    except urllib.error.HTTPError as e:
+        status = "unknown"
+        reasons = []
+        try:
+            info = json.loads(e.read(16384)).get("error", {})
+            status = info.get("status", "unknown")
+            reasons = [d["reason"] for d in info.get("details", []) if isinstance(d, dict) and d.get("reason")]
+        except Exception:
+            pass
+        print(f"Probe {path}, auth={'query' if use_query else 'header'}: HTTP {e.code}, status={status}, reasons={','.join(reasons) or 'unspecified'}")
+        return False
+    except Exception as e:
+        print(f"Probe {path}, auth={'query' if use_query else 'header'}: transport error {type(e).__name__}")
+        return False
+
+results = [
+    probe("/v1beta/models?pageSize=5", False),
+    probe("/v1beta/models?pageSize=5", True),
+    probe("/v1/models?pageSize=5", False),
+    probe("/v1/models?pageSize=5", True),
+]
+if not any(results):
+    sys.exit("No Gemini API authentication method succeeded. Live API request skipped.")
+print("At least one official Gemini API authentication method succeeded.")
