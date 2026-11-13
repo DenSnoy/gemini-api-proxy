@@ -1,6 +1,757 @@
 {
   "schema_version": 1,
-  "source": "Gemini API models.list; visible to this API key; metadata is not pricing or free-tier proof",
-  "last_changed_at": null,
-  "models": []
+  "source": "Gemini API models.list; visible to this API key; not proof of free-tier pricing or quota",
+  "last_changed_at": "2026-11-13T21:50:55.196Z",
+  "models": [
+    {
+      "id": "antigravity-preview-05-2026",
+      "display_name": "Antigravity Agent Preview",
+      "version": "0.1",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "antigravity-preview-09-2026",
+      "display_name": "Antigravity Agent Preview",
+      "version": "0.1",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "antigravity-preview-latest",
+      "display_name": "Antigravity Agent Preview Latest",
+      "version": "Antigravity Agent Preview Latest",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "aqa",
+      "display_name": "Model that performs Attributed Question Answering.",
+      "version": "001",
+      "supported_generation_methods": [
+        "generateAnswer"
+      ],
+      "input_token_limit": 7168,
+      "output_token_limit": 1024
+    },
+    {
+      "id": "deep-research-max-preview-04-2026",
+      "display_name": "Deep Research Max Preview (Apr-21-2026)",
+      "version": "deepthink-exp-05-20",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "deep-research-preview-04-2026",
+      "display_name": "Deep Research Preview (Apr-21-2026)",
+      "version": "deepthink-exp-05-20",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "deep-research-pro-preview-12-2025",
+      "display_name": "Deep Research Pro Preview (Dec-12-2025) [Rerouted]",
+      "version": "deepthink-exp-05-20",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-2.5-computer-use-preview-10-2025",
+      "display_name": "Gemini 2.5 Computer Use Preview 10-2025",
+      "version": "Gemini 2.5 Computer Use Preview 10-2025",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "display_name": "Gemini 2.5 Flash",
+      "version": "001",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-2.5-flash-image",
+      "display_name": "Nano Banana",
+      "version": "2.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 32768,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-2.5-flash-lite",
+      "display_name": "Gemini 2.5 Flash-Lite",
+      "version": "001",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-2.5-flash-native-audio-latest",
+      "display_name": "Gemini 2.5 Flash Native Audio Latest",
+      "version": "Gemini 2.5 Flash Native Audio Latest",
+      "supported_generation_methods": [
+        "bidiGenerateContent",
+        "countTokens"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 8192
+    },
+    {
+      "id": "gemini-2.5-flash-native-audio-preview-09-2025",
+      "display_name": "Gemini 2.5 Flash Native Audio Preview 09-2025",
+      "version": "gemini-2.5-flash-preview-native-audio-dialog-2025-05-19",
+      "supported_generation_methods": [
+        "bidiGenerateContent",
+        "countTokens"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 8192
+    },
+    {
+      "id": "gemini-2.5-flash-native-audio-preview-12-2025",
+      "display_name": "Gemini 2.5 Flash Native Audio Preview 12-2025",
+      "version": "12-2025",
+      "supported_generation_methods": [
+        "bidiGenerateContent",
+        "countTokens"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 8192
+    },
+    {
+      "id": "gemini-2.5-flash-preview-tts",
+      "display_name": "Gemini 2.5 Flash Preview TTS",
+      "version": "gemini-2.5-flash-exp-tts-2025-05-19",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 16384
+    },
+    {
+      "id": "gemini-2.5-pro",
+      "display_name": "Gemini 2.5 Pro",
+      "version": "2.5",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-2.5-pro-preview-tts",
+      "display_name": "Gemini 2.5 Pro Preview TTS",
+      "version": "gemini-2.5-pro-preview-tts-2025-05-19",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 16384
+    },
+    {
+      "id": "gemini-3-flash-preview",
+      "display_name": "Gemini 3 Flash Preview",
+      "version": "3-flash-preview-12-2025",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3-pro-image",
+      "display_name": "Nano Banana Pro",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-3-pro-image-preview",
+      "display_name": "Nano Banana Pro",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-3.1-flash-image",
+      "display_name": "Nano Banana 2",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 65536,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-image-preview",
+      "display_name": "Nano Banana 2",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 65536,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "display_name": "Gemini 3.1 Flash Lite",
+      "version": "3.1-flash-lite-05-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-lite-image",
+      "display_name": "Nano Banana 2 Lite",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 65536,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-lite-preview",
+      "display_name": "Gemini 3.1 Flash Lite Preview",
+      "version": "3.1-flash-lite-preview-03-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-live-preview",
+      "display_name": "Gemini 3.1 Flash Live Preview",
+      "version": "3.1-flash-live-03-2026",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-flash-tts-preview",
+      "display_name": "Gemini 3.1 Flash TTS Preview",
+      "version": "3.1-flash-tts-preview",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 16384
+    },
+    {
+      "id": "gemini-3.1-pro-preview",
+      "display_name": "Gemini 3.1 Pro Preview",
+      "version": "3.1-pro-preview-01-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.1-pro-preview-customtools",
+      "display_name": "Gemini 3.1 Pro Preview Custom Tools",
+      "version": "3.1-pro-preview-01-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "display_name": "Gemini 3.5 Flash",
+      "version": "3.5-flash-05-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "display_name": "Gemini 3.5 Flash Lite",
+      "version": "3.5-flash-lite-07-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.5-live-translate-preview",
+      "display_name": "Gemini 3.5 Live Translate Preview",
+      "version": "3.5-live-translate-06-2026",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 16384,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-3.5-transcribe",
+      "display_name": "Gemini 3.5 Transcribe",
+      "version": "3.5-transcribe-08-2026",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 98304,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-3.5-transcribe-live",
+      "display_name": "Gemini 3.5 Transcribe Live",
+      "version": "3.5-transcribe-live-08-2026",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "display_name": "Gemini 3.6 Flash",
+      "version": "3.6-flash-07-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.7-flash",
+      "display_name": "Gemini 3.7 Flash",
+      "version": "3.7-flash-08-2026",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "display_name": "Gemini 3.8 Flash",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.8-flash-lite-tts",
+      "display_name": "Gemini 3.8 Flash Lite TTS",
+      "version": "3.8-flash-lite-tts",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 16384
+    },
+    {
+      "id": "gemini-3.8-flash-tts",
+      "display_name": "Gemini 3.8 Flash TTS",
+      "version": "3.8-flash-tts",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 16384
+    },
+    {
+      "id": "gemini-3.8-live",
+      "display_name": "Gemini 3.8 Live",
+      "version": "3.1-flash-live-03-2026",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-3.8-live-extended-thinking",
+      "display_name": "Gemini 3.8 Live Extended Thinking",
+      "version": "3.1-flash-live-03-2026",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-4-argon",
+      "display_name": "Gemini 4 Argon",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-4-carbon",
+      "display_name": "Gemini 4 Carbon",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemini-4-hydrogen",
+      "display_name": "Gemini 4 Hydrogen",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-decision-1",
+      "display_name": "Gemini Decision 1",
+      "version": "gemini-decision-1",
+      "supported_generation_methods": [
+        "createDecision"
+      ],
+      "input_token_limit": 262144,
+      "output_token_limit": 1
+    },
+    {
+      "id": "gemini-embedding-001",
+      "display_name": "Gemini Embedding 001",
+      "version": "001",
+      "supported_generation_methods": [
+        "asyncBatchEmbedContent",
+        "countTextTokens",
+        "countTokens",
+        "embedContent"
+      ],
+      "input_token_limit": 2048,
+      "output_token_limit": 1
+    },
+    {
+      "id": "gemini-embedding-2",
+      "display_name": "Gemini Embedding 2",
+      "version": "2",
+      "supported_generation_methods": [
+        "asyncBatchEmbedContent",
+        "countTextTokens",
+        "countTokens",
+        "embedContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 1
+    },
+    {
+      "id": "gemini-embedding-2-preview",
+      "display_name": "Gemini Embedding 2 Preview",
+      "version": "2",
+      "supported_generation_methods": [
+        "asyncBatchEmbedContent",
+        "countTextTokens",
+        "countTokens",
+        "embedContent"
+      ],
+      "input_token_limit": 8192,
+      "output_token_limit": 1
+    },
+    {
+      "id": "gemini-flash-latest",
+      "display_name": "Gemini Flash Latest",
+      "version": "Gemini Flash Latest",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-flash-lite-latest",
+      "display_name": "Gemini Flash-Lite Latest",
+      "version": "Gemini Flash-Lite Latest",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-nano-banana-2.1",
+      "display_name": "Nano Banana 2.1",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 65536,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-omni-1.1-flash",
+      "display_name": "Gemini Omni 1.1 Flash",
+      "version": "001",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-omni-1.2-flash",
+      "display_name": "Gemini Omni 1.2 Flash",
+      "version": "001",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-omni-flash-preview",
+      "display_name": "Gemini Omni Flash Preview",
+      "version": "001",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-pro-latest",
+      "display_name": "Gemini Pro Latest",
+      "version": "Gemini Pro Latest",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-robotics-er-2-preview",
+      "display_name": "Gemini Robotics-ER 2 Preview",
+      "version": "2-preview",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "createCachedContent",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemini-robotics-er-2-streaming-preview",
+      "display_name": "Gemini Robotics-ER 2 Streaming Preview",
+      "version": "2-streaming-preview",
+      "supported_generation_methods": [
+        "bidiGenerateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "gemma-4-26b-a4b-it",
+      "display_name": "Gemma 4 26B A4B IT",
+      "version": "001",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 262144,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "gemma-4-31b-it",
+      "display_name": "Gemma 4 31B IT",
+      "version": "001",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 262144,
+      "output_token_limit": 32768
+    },
+    {
+      "id": "lyria-3-clip-preview",
+      "display_name": "Lyria 3 Clip Preview",
+      "version": "lyria-3-clip-preview",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "lyria-3-pro-preview",
+      "display_name": "Lyria 3 Pro Preview",
+      "version": "lyria-3-pro-preview",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "lyria-3.5",
+      "display_name": "Lyria 3.5",
+      "version": "3.5",
+      "supported_generation_methods": [
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "lyria-realtime-exp",
+      "display_name": "Lyria Realtime Experimental",
+      "version": "lyria-realtime-exp",
+      "supported_generation_methods": [
+        "bidiGenerateMusic"
+      ],
+      "input_token_limit": 1048576,
+      "output_token_limit": 65536
+    },
+    {
+      "id": "nano-banana-pro-preview",
+      "display_name": "Nano Banana Pro",
+      "version": "3.0",
+      "supported_generation_methods": [
+        "batchGenerateContent",
+        "countTokens",
+        "generateContent"
+      ],
+      "input_token_limit": 131072,
+      "output_token_limit": 32768
+    }
+  ]
 }
