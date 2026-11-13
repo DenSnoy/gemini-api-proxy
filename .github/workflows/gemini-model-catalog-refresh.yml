@@ -1,0 +1,34 @@
+name: Gemini Catalog — POST-DELIVERY (manual request)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "github-live/model-refresh-requests/*.json"
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    name: Read Gemini models.list and save changed catalogue
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Checkout (no SDK or package installation)
+        uses: actions/checkout@v4
+
+      - name: Refresh model metadata, only after user receives result
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node github-live/refresh_model_catalog.mjs
+
+      - name: Upload refresh report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-catalog-refresh-report
+          path: output/model-catalog-refresh.json
+          if-no-files-found: ignore
+          retention-days: 7
