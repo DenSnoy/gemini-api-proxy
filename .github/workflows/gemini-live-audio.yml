@@ -1,10 +1,10 @@
-name: Gemini Live — complete WAV
+name: Gemini Live — WAV + MP3
 
 on:
   push:
     branches: [main]
     paths:
-      - "github-live/requests/**"
+      - "github-live/requests/*.json"
   workflow_dispatch:
     inputs:
       prompt:
@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   generate:
-    name: Generate and validate full Gemini Live WAV
+    name: Generate complete Gemini Live recording and MP3
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -45,16 +45,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Google Gemini Live SDK
-        run: python -m pip install --disable-pip-version-check --upgrade google-genai
-
-      - name: Run offline WAV tests
-        run: python -m unittest discover -s github-live -p "test_*.py" -v
-
-      - name: Verify Gemini API access without printing the secret
-        env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python github-live/check_access.py
+      - name: Install lightweight WebSocket transport
+        run: python -m pip install --disable-pip-version-check websockets
 
       - name: Record complete Gemini Live turn
         env:
@@ -66,11 +58,47 @@ jobs:
         run: |
           # On GitHub push, take the voice and prompt from the newest request.
           # Workflow_dispatch user inputs still take priority for manual runs.
-          if [[ "${{ github.event_name }}" == "push" && -f github-live/requests/current-request.json ]]; then
-            readarray -d '' -t REQUEST_SETTINGS < <(python - <<'PY'
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            # One new JSON file in github-live/requests/ = one generation.
+            # Uses the file in this commit, never a stale prior request.
+            REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/requests/[^/]+\.json
+          python github-live/direct_live_audio.py \
+            --prompt "$PROMPT_INPUT" \
+            --voice "$VOICE_INPUT" \
+            --model "$MODEL_INPUT" \
+            --min-seconds "$MIN_SECONDS_INPUT" \
+            --max-seconds 120 \
+            --timeout-seconds 180 \
+            --target-seconds 30 \
+            --attempts 2 \
+            --output output/gemini-live.wav
+
+      - name: Convert completed recording to MP3 automatically
+        run: |
+          ffmpeg -nostdin -hide_banner -loglevel error -y \
+            -i output/gemini-live.wav -codec:a libmp3lame -b:a 192k \
+            output/gemini-live.mp3
+          test -s output/gemini-live.mp3
+
+      - name: Upload completed WAV and MP3
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-live-complete-audio
+          path: |
+            output/gemini-live.mp3
+            output/gemini-live.wav
+          if-no-files-found: error
+          retention-days: 7
+ | head -n 1 || true)"
+            if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
+              echo "No JSON audio request was included in this commit" >&2
+              exit 1
+            fi
+            readarray -d '' -t REQUEST_SETTINGS < <(python - "$REQUEST_FILE" <<'PY'
           import json
           import sys
-          with open("github-live/requests/current-request.json", encoding="utf-8") as f:
+          with open(sys.argv[1], encoding="utf-8") as f:
               request = json.load(f)
           for field in ("prompt", "voice"):
               sys.stdout.write(str(request[field]) + chr(0))
