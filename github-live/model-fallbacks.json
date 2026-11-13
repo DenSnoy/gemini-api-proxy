@@ -35,6 +35,16 @@
         "gemini-3.1-flash-live-preview"
       ],
       "discovered_available": []
+    },
+    "hydrogen": {
+      "alias": null,
+      "preferred": null,
+      "alias_retry_after": null,
+      "backups": [
+        "gemini-4-hydrogen"
+      ],
+      "discovered_available": [],
+      "note": "Separate Gemini 4 family; priced model, only select when user explicitly requests Hydrogen. No automatic Flash fallback."
     }
   }
 }
