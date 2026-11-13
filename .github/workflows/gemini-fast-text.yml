@@ -1,0 +1,42 @@
+name: Gemini Text — FAST (Flash / Flash-Lite)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "github-live/text-requests/*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Gemini Flash text via native Node fetch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout request and runner
+        uses: actions/checkout@v4
+
+      - name: Run Flash or Flash-Lite without dependency installs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          node --version
+          REQUEST_FILE="$(git diff-tree --root --no-commit-id --name-only -r HEAD | grep -E '^github-live/text-requests/[^/]+\.json$' | head -n 1 || true)"
+          if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
+            echo "No new text request in commit" >&2
+            exit 1
+          fi
+          node github-live/direct_gemini_text.mjs "$REQUEST_FILE" output/gemini-text.txt
+
+      - name: Upload finished text only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-fast-text
+          path: |
+            output/gemini-text.txt
+            output/gemini-text.txt.json
+          if-no-files-found: error
+          retention-days: 7
