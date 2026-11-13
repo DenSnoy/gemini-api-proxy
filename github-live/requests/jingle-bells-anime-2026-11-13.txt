@@ -1,0 +1,1 @@
+Request: Generate the complete Jingle Bells WAV with the Gemini Live voice Leda, by GitHub Actions using the previously configured GEMINI_API_KEY secret. The workflow uploads an artifact only if complete and long enough.
