@@ -17,9 +17,15 @@ try:
 except urllib.error.HTTPError as error:
     print(f"Gemini REST API model listing: HTTP {error.code}", flush=True)
     try:
-        info = json.loads(error.read(4096)).get("error", {})
+        info = json.loads(error.read(16384)).get("error", {})
         print("Google error status:", info.get("status", "unknown"), flush=True)
         print("Google error message:", str(info.get("message", ""))[:250].replace(key, "[REDACTED]"), flush=True)
+        reasons = [d.get("reason") for d in info.get("details", []) if isinstance(d, dict) and d.get("reason")]
+        if reasons:
+            print("Google error reasons:", ", ".join(reasons), flush=True)
+        if error.code == 401:
+            print("401 does NOT imply that the key must start with AIza: modern AI Studio auth keys often start with AQ.", flush=True)
+            print("Check for an AQ auth-key provisioning issue or incorrect secret value; no OAuth or Google Cloud SDK is required for Gemini Developer API auth keys.", flush=True)
     except Exception:
         pass
     sys.exit(1)
