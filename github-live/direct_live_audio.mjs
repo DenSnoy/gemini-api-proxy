@@ -12,8 +12,8 @@ const WS_ENDPOINT = "wss://generativelanguage.googleapis.com/ws/" +
 function argsFromCli() {
   const args = {
     prompt: "", voice: "Leda", model: "gemini-3.8-live",
-    minSeconds: 3.5, targetSeconds: 30, maxSeconds: 120,
-    timeoutSeconds: 90, attempts: 2, maxTargetSeconds: null,
+    minSeconds: 0, targetSeconds: null, maxSeconds: 120,
+    timeoutSeconds: 90, attempts: 1, maxTargetSeconds: null,
     output: "output/gemini-live.wav"
   };
   const raw = {};
@@ -38,20 +38,25 @@ function argsFromCli() {
     ["max-seconds", "maxSeconds"], ["timeout-seconds", "timeoutSeconds"],
     ["attempts", "attempts"], ["output", "output"]
   ]) if (raw[from] !== undefined) args[to] = raw[from];
-  for (const name of ["minSeconds", "targetSeconds", "maxSeconds", "timeoutSeconds", "attempts"]) {
+  for (const name of ["maxSeconds", "timeoutSeconds", "attempts"]) {
     args[name] = Number(args[name]);
   }
-  if (args.maxTargetSeconds !== null) args.maxTargetSeconds = Number(args.maxTargetSeconds);
+  if (args.targetSeconds !== null && args.targetSeconds !== "") args.targetSeconds = Number(args.targetSeconds);
+  else args.targetSeconds = null;
+  // Legacy min/max duration request values are informational only, never rejection criteria.
   if (!args.prompt || !args.voice) throw Error("Prompt and voice required");
-  if (!(args.minSeconds > 0 && args.minSeconds <= args.maxSeconds &&
-        args.targetSeconds > 0 && args.targetSeconds <= args.maxSeconds &&
-        args.maxSeconds <= 300 && args.timeoutSeconds >= 5 &&
+  if (!(args.maxSeconds > 0 && args.maxSeconds <= 300 && args.timeoutSeconds >= 5 &&
         args.attempts >= 1 && args.attempts <= 3 &&
-        (args.maxTargetSeconds === null || (args.maxTargetSeconds >= args.minSeconds && args.maxTargetSeconds <= args.maxSeconds)))) throw Error("Invalid duration / retries");
+        (args.targetSeconds === null || (Number.isFinite(args.targetSeconds) && args.targetSeconds > 0)))) {
+    throw Error("Invalid settings");
+  }
   return args;
 }
 
 function setup(args) {
+  const timing = args.targetSeconds === null
+    ? "Use a natural performance length; do not pad with filler. "
+    : "Aim for approximately " + args.targetSeconds + " seconds, adjusting tempo and phrasing naturally. ";
   return { setup: {
     model: "models/" + args.model.replace(/^models\//, ""),
     generationConfig: {
@@ -61,9 +66,9 @@ function setup(args) {
     systemInstruction: { parts: [{ text: (
       "You are a professional expressive voice actor. Perform the requested " +
       "script or original song in the exact language, voice style, emotion and " +
-      "pacing requested. Aim for approximately " + args.targetSeconds +
-      " seconds of continuous performance, ending with a natural, complete " +
-      "final phrase. Control pitch, intonation, emotional dynamics, tempo and " +
+      "pacing requested. " + timing +
+      "End with a natural, complete final phrase. " +
+      "Control pitch, intonation, emotional dynamics, tempo and " +
       "melody as directed. Never end abruptly. Never speak an introduction. " +
       "No explanations or extra commentary."
     ) }] }
@@ -127,15 +132,10 @@ function receiveCompleteTurn(args, key) {
           }
         }
         if (sc.turnComplete) {
-          if (!ready || totalBytes < args.minSeconds * BYTES_PER_SECOND || totalBytes % 2) {
-            throw Error("Gemini Live turn complete but audio too short or invalid (" +
-              (totalBytes / BYTES_PER_SECOND).toFixed(2) + " seconds)");
+          if (!ready || totalBytes === 0 || totalBytes % 2) {
+            throw Error("Gemini Live turn completed without valid PCM audio");
           }
           const fullSeconds = totalBytes / BYTES_PER_SECOND;
-          if (args.maxTargetSeconds !== null && fullSeconds > args.maxTargetSeconds) {
-            throw Error("Completed performance too long (" + fullSeconds.toFixed(2) +
-              "s, expected at most " + args.maxTargetSeconds + "s); retrying without trimming");
-          }
           stop(null, { pcm: Buffer.concat(pieces, totalBytes), totalSeconds: fullSeconds });
         }
       } catch (e) { stop(e); }
@@ -172,14 +172,12 @@ async function main() {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Error("Missing GEMINI_API_KEY repository secret");
   console.log("Zero-install runner: Node " + process.version + ", WebSocket " +
-    typeof WebSocket + ", voice " + args.voice + ", target " + args.targetSeconds +
-    "s, allowed range " + args.minSeconds + "–" + String(args.maxTargetSeconds) + "s");
+    typeof WebSocket + ", voice " + args.voice + ", requested duration " +
+    (args.targetSeconds === null ? "not specified" : args.targetSeconds + "s") +
+    ", output: untrimmed completed turn");
   for (let attempt = 1; attempt <= args.attempts; attempt++) {
     try {
       const result = await receiveCompleteTurn(args, key);
-      if (args.maxTargetSeconds !== null && result.totalSeconds > args.maxTargetSeconds) {
-        throw Error("Completed audio is too long: " + result.totalSeconds.toFixed(2) + "s");
-      }
       const wav = wavFromCompletedTurn(result.pcm);
       fs.mkdirSync(path.dirname(args.output), { recursive: true });
       const temporary = args.output + ".partial";
