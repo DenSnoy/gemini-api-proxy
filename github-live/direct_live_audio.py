@@ -26,8 +26,9 @@ def options():
     p.add_argument("--voice", default="Leda")
     p.add_argument("--model", default=MODEL)
     p.add_argument("--min-seconds", type=float, default=25)
-    p.add_argument("--max-seconds", type=float, default=45)
-    p.add_argument("--timeout-seconds", type=float, default=110)
+    p.add_argument("--max-seconds", type=float, default=120)
+    p.add_argument("--target-seconds", type=float, default=30)
+    p.add_argument("--timeout-seconds", type=float, default=180)
     p.add_argument("--attempts", type=int, default=2)
     p.add_argument("--output", default="output/gemini-live.wav")
     return p.parse_args()
@@ -123,7 +124,19 @@ async def live_turn(args, key):
     return bytes(received), seconds
 
 
-def save_complete_wav(pcm, path):
+def save_complete_wav(pcm, path, target_seconds=30):
+    # Editing is applied only AFTER Live confirms the entire turn is complete.
+    # Short fade prevents a click if an overlong full recording is trimmed.
+    maximum_bytes = int(target_seconds * RATE) * 2
+    if len(pcm) > maximum_bytes:
+        pcm = bytearray(pcm[:maximum_bytes])
+        import struct
+        fade_samples = min(int(RATE * 0.18), len(pcm) // 2)
+        for i in range(fade_samples):
+            pos = len(pcm) - 2 * fade_samples + 2 * i
+            value = struct.unpack_from("<h", pcm, pos)[0]
+            struct.pack_into("<h", pcm, pos, round(value * (fade_samples - i - 1) / fade_samples))
+        pcm = bytes(pcm)
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = None
     try:
@@ -147,7 +160,7 @@ async def main():
     key = os.environ.get("GEMINI_API_KEY", "")
     if not key:
         raise SystemExit("GEMINI_API_KEY not set in GitHub Actions secrets")
-    if not (0 < args.min_seconds <= args.max_seconds <= 300):
+    if not (0 < args.min_seconds <= args.max_seconds <= 300 and 0 < args.target_seconds <= args.max_seconds):
         raise SystemExit("Invalid minimum/maximum duration")
     if not (1 <= args.attempts <= 3):
         raise SystemExit("Attempts must be between 1 and 3")
@@ -155,8 +168,9 @@ async def main():
         print(f"Direct Gemini Live WebSocket attempt {n}/{args.attempts} model={args.model} voice={args.voice}", flush=True)
         try:
             pcm, seconds = await live_turn(args, key)
-            save_complete_wav(pcm, Path(args.output))
-            print(f"COMPLETE WAV saved: {args.output} ({seconds:.2f}s)", flush=True)
+            save_complete_wav(pcm, Path(args.output), args.target_seconds)
+            final_seconds = min(seconds, args.target_seconds)
+            print(f"COMPLETE Live turn received ({seconds:.2f}s); WAV saved: {args.output} ({final_seconds:.2f}s)", flush=True)
             return
         except Exception as exc:
             message = str(exc).replace(key, "[REDACTED]")
