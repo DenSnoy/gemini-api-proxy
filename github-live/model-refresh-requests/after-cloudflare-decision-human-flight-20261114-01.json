@@ -1,0 +1,6 @@
+{
+  "reason": "after_user_delivery",
+  "model": "gemini-decision-1",
+  "question": "Может ли человек летать самостоятельно?",
+  "transport": "cloudflare"
+}
