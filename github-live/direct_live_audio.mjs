@@ -172,10 +172,14 @@ async function main() {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Error("Missing GEMINI_API_KEY repository secret");
   console.log("Zero-install runner: Node " + process.version + ", WebSocket " +
-    typeof WebSocket + ", voice " + args.voice + ", target " + args.targetSeconds + "s");
+    typeof WebSocket + ", voice " + args.voice + ", target " + args.targetSeconds +
+    "s, allowed range " + args.minSeconds + "–" + String(args.maxTargetSeconds) + "s");
   for (let attempt = 1; attempt <= args.attempts; attempt++) {
     try {
       const result = await receiveCompleteTurn(args, key);
+      if (args.maxTargetSeconds !== null && result.totalSeconds > args.maxTargetSeconds) {
+        throw Error("Completed audio is too long: " + result.totalSeconds.toFixed(2) + "s");
+      }
       const wav = wavFromCompletedTurn(result.pcm);
       fs.mkdirSync(path.dirname(args.output), { recursive: true });
       const temporary = args.output + ".partial";
