@@ -51,6 +51,11 @@ jobs:
       - name: Run offline WAV tests
         run: python -m unittest discover -s github-live -p "test_*.py" -v
 
+      - name: Verify Gemini API access without printing the secret
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python github-live/check_access.py
+
       - name: Record complete Gemini Live turn
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
