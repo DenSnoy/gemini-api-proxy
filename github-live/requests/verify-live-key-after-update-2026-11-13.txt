@@ -1,0 +1,1 @@
+Verify GEMINI_API_KEY against Google Gemini REST authentication and attempt a complete native Gemini Live Jingle Bells recording. Publish only a complete WAV. No Cloudflare.
