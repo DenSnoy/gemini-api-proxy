@@ -17,7 +17,11 @@ function readRequest(file) {
   const timeoutMs = r.timeout_ms == null ? 60000 : Number(r.timeout_ms);
   if (!Number.isInteger(tokens) || tokens < 64 || tokens > 8192) throw Error("Invalid max_output_tokens");
   if (!Number.isFinite(timeoutMs) || timeoutMs < 5000 || timeoutMs > 120000) throw Error("Invalid timeout_ms");
-  return {mode, prompt:r.prompt, tokens, timeoutMs};
+  const explicitModel = r.model ?? null;
+  if (explicitModel !== null && !MODEL_FAMILIES[mode].includes(explicitModel)) {
+    throw Error("Requested model is not an approved model for " + mode);
+  }
+  return {mode, prompt:r.prompt, tokens, timeoutMs, explicitModel};
 }
 
 function extractText(json) {
@@ -30,7 +34,9 @@ async function generate(req, apiKey, model) {
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
     encodeURIComponent(model) + ":generateContent";
   const config = {maxOutputTokens:req.tokens};
-  if (req.mode === "flash" && /^gemini-3\.(8|7|6|5)-flash$/.test(model)) {
+  if (model === "gemini-2.5-flash") {
+    config.thinkingConfig = {thinkingBudget:0};
+  } else if (req.mode === "flash" && /^gemini-3\.(8|7|6|5)-flash$/.test(model)) {
     config.thinkingConfig = {thinkingLevel:"low"};
   }
   // Do not send a version-specific thinkingConfig to a moving -latest alias.
@@ -75,6 +81,7 @@ async function main() {
   const {model, value, usedFallback} = await runWithFallback({
     family:req.mode,
     apiKey:key,
+    explicitModel:req.explicitModel,
     run:model=>generate(req,key,model)
   });
   fs.mkdirSync(path.dirname(outputFile), {recursive:true});
