@@ -69,7 +69,9 @@ jobs:
             --voice "$VOICE_INPUT" \
             --model "$MODEL_INPUT" \
             --min-seconds "$MIN_SECONDS_INPUT" \
-            --max-seconds 45 \
+            --max-seconds 120 \
+            --timeout-seconds 180 \
+            --target-seconds 30 \
             --attempts 2 \
             --output output/gemini-live.wav
 
