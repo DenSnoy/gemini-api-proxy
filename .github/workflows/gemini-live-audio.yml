@@ -46,7 +46,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install minimal WebSocket library
-        run: python -m pip install --disable-pip-version-check "websockets>=14,<19"
+        run: python -m pip install --disable-pip-version-check "websockets>=14,<19" "imageio-ffmpeg>=0.5,<1"
 
       - name: Record complete Live audio
         env:
@@ -57,31 +57,20 @@ jobs:
           MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
           TARGET_SECONDS_INPUT: "30"
         run: |
+          REQUEST_ARGS=()
           if [[ "${{ github.event_name }}" == "push" ]]; then
-            # For each new request, create ONE JSON file. Never reuse an old prompt.
             REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/requests/[^/]+\.json$' | head -n 1 || true)"
             if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
-              echo "No new JSON audio request found" >&2
+              echo "No JSON audio request found" >&2
               exit 1
             fi
-            readarray -d '' -t REQUEST_SETTINGS < <(python - "$REQUEST_FILE" <<'PY'
-          import json
-          import sys
-          with open(sys.argv[1], encoding="utf-8") as f:
-              request = json.load(f)
-          for field, default in (("prompt", ""), ("voice", "Leda"), ("min_seconds", 25), ("target_seconds", 30)):
-              sys.stdout.write(str(request.get(field, default)) + chr(0))
-          PY
-            )
-            PROMPT_INPUT="${REQUEST_SETTINGS[0]}"
-            VOICE_INPUT="${REQUEST_SETTINGS[1]}"
-            MIN_SECONDS_INPUT="${REQUEST_SETTINGS[2]}"
-            TARGET_SECONDS_INPUT="${REQUEST_SETTINGS[3]}"
+            REQUEST_ARGS=(--request-file "$REQUEST_FILE")
           fi
 
           python github-live/direct_live_audio.py \
             --prompt "$PROMPT_INPUT" \
             --voice "$VOICE_INPUT" \
+            "${REQUEST_ARGS[@]}" \
             --model "$MODEL_INPUT" \
             --min-seconds "$MIN_SECONDS_INPUT" \
             --max-seconds 120 \
@@ -92,7 +81,8 @@ jobs:
 
       - name: Encode MP3 after completed WAV
         run: |
-          ffmpeg -nostdin -hide_banner -loglevel error -y \
+          FFMPEG="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+          "$FFMPEG" -nostdin -hide_banner -loglevel error -y \
             -i output/gemini-live.wav -codec:a libmp3lame -b:a 192k \
             output/gemini-live.mp3
           test -s output/gemini-live.mp3
