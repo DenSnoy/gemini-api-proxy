@@ -50,13 +50,13 @@ jobs:
 
       - name: Record complete Live audio
         env:
-          GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
-          PROMPT_INPUT: \${{ inputs.prompt || 'Sing a cheerful original song for about 30 seconds, without an introduction.' }}
-          VOICE_INPUT: \${{ inputs.voice || 'Leda' }}
-          MODEL_INPUT: \${{ inputs.model || 'gemini-3.8-live' }}
-          MIN_SECONDS_INPUT: \${{ inputs.min_seconds || '25' }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PROMPT_INPUT: ${{ inputs.prompt || 'Sing a cheerful original song for about 30 seconds, without an introduction.' }}
+          VOICE_INPUT: ${{ inputs.voice || 'Leda' }}
+          MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
+          MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
         run: |
-          if [[ "\${{ github.event_name }}" == "push" ]]; then
+          if [[ "${{ github.event_name }}" == "push" ]]; then
             # For each new request, create ONE JSON file. Never reuse an old prompt.
             REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/requests/[^/]+\.json$' | head -n 1 || true)"
             if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
@@ -72,8 +72,8 @@ jobs:
               sys.stdout.write(str(request[field]) + chr(0))
           PY
             )
-            PROMPT_INPUT="\${REQUEST_SETTINGS[0]}"
-            VOICE_INPUT="\${REQUEST_SETTINGS[1]}"
+            PROMPT_INPUT="${REQUEST_SETTINGS[0]}"
+            VOICE_INPUT="${REQUEST_SETTINGS[1]}"
           fi
 
           python github-live/direct_live_audio.py \
