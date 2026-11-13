@@ -109,15 +109,18 @@ async function persistWorkingFallback(family, model, previous, discovered = []) 
   }
 }
 
-export async function runWithFallback({family, apiKey, run}) {
+export async function runWithFallback({family, apiKey, run, explicitModel = null}) {
   const defaults = MODEL_FAMILIES[family];
   if (!defaults || typeof run !== "function") throw Error("Unsupported model family: " + family);
+  if (explicitModel !== null && !isValidFamilyModel(family, explicitModel)) {
+    throw Error("Explicit model is not approved for this family: " + explicitModel);
+  }
   const cached = readCache().families?.[family] || {};
   const cachedPreferred = isValidFamilyModel(family, cached.preferred) ? cached.preferred : null;
   const inCooldown = cachedPreferred && cached.alias_retry_after &&
     Date.parse(cached.alias_retry_after) > Date.now();
   // Recheck -latest after a 6h cooldown; no model-catalog calls on successful normal path.
-  const preferred = inCooldown ? cachedPreferred : defaults[0];
+  const preferred = explicitModel || (inCooldown ? cachedPreferred : defaults[0]);
   let order = [preferred, ...defaults.filter(m => m !== preferred)];
   let catalog = null;
   let lastError = null;
