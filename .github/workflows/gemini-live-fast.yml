@@ -31,7 +31,7 @@ jobs:
           fi
           node github-live/direct_live_audio.mjs \
             --request-file "$REQUEST_FILE" \
-            --attempts 2 \
+            --attempts 1 \
             --timeout-seconds 90 \
             --output output/gemini-live.wav
 
