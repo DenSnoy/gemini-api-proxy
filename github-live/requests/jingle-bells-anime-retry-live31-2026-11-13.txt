@@ -1,0 +1,1 @@
+Retry Gemini Live Jingle Bells generation on GitHub Actions using gemini-3.1-flash-live-preview and secret GEMINI_API_KEY; publish only full WAV.
