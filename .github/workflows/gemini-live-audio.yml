@@ -64,6 +64,21 @@ jobs:
           MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
           MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
         run: |
+          # On GitHub push, take the voice and prompt from the newest request.
+          # Workflow_dispatch user inputs still take priority for manual runs.
+          if [[ "${{ github.event_name }}" == "push" && -f github-live/requests/current-request.json ]]; then
+            readarray -d '' -t REQUEST_SETTINGS < <(python - <<'PY'
+          import json
+          import sys
+          with open("github-live/requests/current-request.json", encoding="utf-8") as f:
+              request = json.load(f)
+          for field in ("prompt", "voice"):
+              sys.stdout.write(str(request[field]) + chr(0))
+          PY
+            )
+            PROMPT_INPUT="${REQUEST_SETTINGS[0]}"
+            VOICE_INPUT="${REQUEST_SETTINGS[1]}"
+          fi
           python github-live/direct_live_audio.py \
             --prompt "$PROMPT_INPUT" \
             --voice "$VOICE_INPUT" \
