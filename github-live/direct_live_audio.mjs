@@ -3,6 +3,7 @@
 // Writes no partial audio: the WAV appears only after Google's turnComplete event.
 import fs from "node:fs";
 import path from "node:path";
+import {runWithFallback} from "./model-router.mjs";
 
 const RATE = 24000;
 const BYTES_PER_SECOND = RATE * 2;
@@ -23,8 +24,10 @@ function argsFromCli() {
     }
     raw[process.argv[i].slice(2)] = process.argv[i + 1];
   }
+  let explicitModel = false;
   if (raw["request-file"]) {
     const request = JSON.parse(fs.readFileSync(raw["request-file"], "utf8"));
+    explicitModel = Object.hasOwn(request, "model");
     for (const [from, to] of [
       ["prompt", "prompt"], ["voice", "voice"], ["model", "model"],
       ["min_seconds", "minSeconds"], ["target_seconds", "targetSeconds"],
@@ -32,6 +35,7 @@ function argsFromCli() {
       ["max_target_seconds", "maxTargetSeconds"]
     ]) if (request[from] !== undefined) args[to] = request[from];
   }
+  if (raw.model !== undefined) explicitModel = true;
   for (const [from, to] of [
     ["prompt", "prompt"], ["voice", "voice"], ["model", "model"],
     ["min-seconds", "minSeconds"], ["target-seconds", "targetSeconds"],
@@ -50,6 +54,7 @@ function argsFromCli() {
         (args.targetSeconds === null || (Number.isFinite(args.targetSeconds) && args.targetSeconds > 0)))) {
     throw Error("Invalid settings");
   }
+  args.explicitModel = explicitModel;
   return args;
 }
 
@@ -175,24 +180,21 @@ async function main() {
     typeof WebSocket + ", voice " + args.voice + ", requested duration " +
     (args.targetSeconds === null ? "not specified" : args.targetSeconds + "s") +
     ", output: untrimmed completed turn");
-  for (let attempt = 1; attempt <= args.attempts; attempt++) {
-    try {
-      const result = await receiveCompleteTurn(args, key);
-      const wav = wavFromCompletedTurn(result.pcm);
-      fs.mkdirSync(path.dirname(args.output), { recursive: true });
-      const temporary = args.output + ".partial";
-      fs.writeFileSync(temporary, wav);
-      fs.renameSync(temporary, args.output);
-      console.log("COMPLETE GEMINI LIVE WAV:", args.output,
-        "source", result.totalSeconds.toFixed(2) + "s",
-        "file", ((wav.length - 44) / BYTES_PER_SECOND).toFixed(2) + "s");
-      return;
-    } catch (e) {
-      console.error("Attempt " + attempt + "/" + args.attempts + ": " +
-        String(e.message || e).replaceAll(key, "[REDACTED]"));
-    }
-  }
-  throw Error("No complete audio generated, so no artifact will be published");
+  const {model, value: result, usedFallback} = await runWithFallback({
+    family:"live",
+    apiKey:key,
+    explicitModel:args.explicitModel ? args.model : null,
+    run:(model)=>receiveCompleteTurn({...args, model}, key)
+  });
+  const wav = wavFromCompletedTurn(result.pcm);
+  fs.mkdirSync(path.dirname(args.output), {recursive:true});
+  const temporary = args.output + ".partial";
+  fs.writeFileSync(temporary, wav);
+  fs.renameSync(temporary, args.output);
+  console.log("COMPLETE GEMINI LIVE WAV:", args.output,
+    "model", model, "fallback", usedFallback,
+    "source", result.totalSeconds.toFixed(2) + "s",
+    "file", ((wav.length - 44) / BYTES_PER_SECOND).toFixed(2) + "s");
 }
 
 main().catch(e => { console.error(e.message); process.exitCode = 1; });
