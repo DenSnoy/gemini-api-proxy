@@ -55,6 +55,7 @@ jobs:
           VOICE_INPUT: ${{ inputs.voice || 'Leda' }}
           MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
           MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
+          TARGET_SECONDS_INPUT: "30"
         run: |
           if [[ "${{ github.event_name }}" == "push" ]]; then
             # For each new request, create ONE JSON file. Never reuse an old prompt.
@@ -68,12 +69,14 @@ jobs:
           import sys
           with open(sys.argv[1], encoding="utf-8") as f:
               request = json.load(f)
-          for field in ("prompt", "voice"):
-              sys.stdout.write(str(request[field]) + chr(0))
+          for field, default in (("prompt", ""), ("voice", "Leda"), ("min_seconds", 25), ("target_seconds", 30)):
+              sys.stdout.write(str(request.get(field, default)) + chr(0))
           PY
             )
             PROMPT_INPUT="${REQUEST_SETTINGS[0]}"
             VOICE_INPUT="${REQUEST_SETTINGS[1]}"
+            MIN_SECONDS_INPUT="${REQUEST_SETTINGS[2]}"
+            TARGET_SECONDS_INPUT="${REQUEST_SETTINGS[3]}"
           fi
 
           python github-live/direct_live_audio.py \
@@ -83,7 +86,7 @@ jobs:
             --min-seconds "$MIN_SECONDS_INPUT" \
             --max-seconds 120 \
             --timeout-seconds 180 \
-            --target-seconds 30 \
+            --target-seconds "$TARGET_SECONDS_INPUT" \
             --attempts 2 \
             --output output/gemini-live.wav
 
