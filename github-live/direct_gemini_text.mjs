@@ -21,7 +21,9 @@ function readRequest(file) {
   if (explicitModel !== null && !MODEL_FAMILIES[mode].includes(explicitModel)) {
     throw Error("Requested model is not an approved model for " + mode);
   }
-  return {mode, prompt:r.prompt, tokens, timeoutMs, explicitModel};
+  const exactModel = r.exact_model === true;
+  if (exactModel && explicitModel === null) throw Error("exact_model requires model");
+  return {mode, prompt:r.prompt, tokens, timeoutMs, explicitModel, exactModel};
 }
 
 function extractText(json) {
@@ -78,12 +80,14 @@ async function main() {
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw Error("Missing GitHub secret GEMINI_API_KEY");
   console.log("Fast Gemini text family:", req.mode, "Node:", process.version, "install: none");
-  const {model, value, usedFallback} = await runWithFallback({
-    family:req.mode,
-    apiKey:key,
-    explicitModel:req.explicitModel,
-    run:model=>generate(req,key,model)
-  });
+  const {model, value, usedFallback} = req.exactModel
+    ? {model:req.explicitModel, value:await generate(req,key,req.explicitModel), usedFallback:false}
+    : await runWithFallback({
+        family:req.mode,
+        apiKey:key,
+        explicitModel:req.explicitModel,
+        run:model=>generate(req,key,model)
+      });
   fs.mkdirSync(path.dirname(outputFile), {recursive:true});
   fs.writeFileSync(outputFile + ".tmp", value.text + "\n", "utf8");
   fs.renameSync(outputFile + ".tmp", outputFile);
