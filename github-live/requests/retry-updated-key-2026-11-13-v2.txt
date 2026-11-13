@@ -1,0 +1,1 @@
+Retry complete Gemini Live audio with the newly updated GitHub Actions GEMINI_API_KEY secret. Verify Google authentication, then generate complete Jingle Bells audio (Leda) and upload the WAV only on success.
