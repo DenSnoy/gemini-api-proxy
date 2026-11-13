@@ -64,7 +64,7 @@ jobs:
           MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
           MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
         run: |
-          python github-live/generate_live_audio.py \
+          python github-live/direct_live_audio.py \
             --prompt "$PROMPT_INPUT" \
             --voice "$VOICE_INPUT" \
             --model "$MODEL_INPUT" \
