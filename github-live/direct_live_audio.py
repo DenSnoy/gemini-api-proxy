@@ -22,7 +22,8 @@ ENDPOINT = (
 
 def options():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--prompt", required=True)
+    p.add_argument("--prompt", default="")
+    p.add_argument("--request-file", default=None)
     p.add_argument("--voice", default="Leda")
     p.add_argument("--model", default=MODEL)
     p.add_argument("--min-seconds", type=float, default=25)
@@ -31,7 +32,19 @@ def options():
     p.add_argument("--timeout-seconds", type=float, default=180)
     p.add_argument("--attempts", type=int, default=2)
     p.add_argument("--output", default="output/gemini-live.wav")
-    return p.parse_args()
+    args = p.parse_args()
+    if args.request_file:
+        with open(args.request_file, encoding="utf-8") as f:
+            request = json.load(f)
+        for name in ("prompt", "voice", "min_seconds", "target_seconds"):
+            if name in request:
+                setattr(args, name, request[name])
+    if not args.prompt:
+        p.error("A prompt or --request-file with prompt is required")
+    args.min_seconds = float(args.min_seconds)
+    args.target_seconds = float(args.target_seconds)
+    print(f"Audio request: voice={args.voice}, min={args.min_seconds}s, target={args.target_seconds}s", flush=True)
+    return args
 
 
 def setup(model, voice):
