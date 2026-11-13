@@ -1,0 +1,1 @@
+Try Gemini Live again after fixing setupComplete empty-object handling. Generate Jingle Bells with voice Leda as a complete WAV, no Cloudflare, using valid GitHub secret.
