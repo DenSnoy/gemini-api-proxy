@@ -1,0 +1,40 @@
+name: Gemini Decision 1 — FAST (no installs)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "github-live/decision-requests/*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  decide:
+    name: Structured Gemini Decisions API request
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout request and Node runner
+        uses: actions/checkout@v4
+
+      - name: Execute Gemini Decision 1 without installations
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        shell: bash
+        run: |
+          REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/decision-requests/[^/]+\.json$' | head -n 1 || true)"
+          if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
+            echo "No new Gemini Decision 1 request in commit" >&2
+            exit 1
+          fi
+          node github-live/direct_gemini_decision.mjs "$REQUEST_FILE" output/gemini-decision.json
+
+      - name: Publish actual decision scores
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-decision-1-results
+          path: output/gemini-decision.json
+          if-no-files-found: error
+          retention-days: 7
