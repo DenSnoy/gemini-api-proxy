@@ -1,0 +1,8 @@
+{
+  "reason": "after_user_delivery",
+  "delivery": "cloudflare_text_migration_test",
+  "models": [
+    "gemini-flash-lite-latest",
+    "gemini-decision-1"
+  ]
+}
