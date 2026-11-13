@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "description": "GitHub Actions remembers a working model for each family after a verified fallback. Primary is the official latest alias for Flash/Flash-Lite and a specific current Live model. Normal requests do not call models.list.",
+  "families": {
+    "flash": {
+      "alias": "gemini-flash-latest",
+      "preferred": null,
+      "alias_retry_after": null,
+      "backups": [
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+        "gemini-2.5-flash"
+      ],
+      "discovered_available": []
+    },
+    "flash_lite": {
+      "alias": "gemini-flash-lite-latest",
+      "preferred": null,
+      "alias_retry_after": null,
+      "backups": [
+        "gemini-3.5-flash-lite",
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-flash-lite"
+      ],
+      "discovered_available": []
+    },
+    "live": {
+      "alias": null,
+      "preferred": null,
+      "alias_retry_after": null,
+      "backups": [
+        "gemini-3.8-live",
+        "gemini-3.1-flash-live-preview"
+      ],
+      "discovered_available": []
+    }
+  }
+}
