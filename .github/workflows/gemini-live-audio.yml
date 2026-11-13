@@ -1,6 +1,10 @@
 name: Gemini Live — complete WAV
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "github-live/requests/**"
   workflow_dispatch:
     inputs:
       prompt:
@@ -50,10 +54,10 @@ jobs:
       - name: Record complete Gemini Live turn
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          PROMPT_INPUT: ${{ inputs.prompt }}
-          VOICE_INPUT: ${{ inputs.voice }}
-          MODEL_INPUT: ${{ inputs.model }}
-          MIN_SECONDS_INPUT: ${{ inputs.min_seconds }}
+          PROMPT_INPUT: ${{ inputs.prompt || 'Sing Jingle Bells in English for approximately 30 seconds. Use the familiar melody, steady cheerful rhythm and an adorable high-pitched anime-style voice. Sing actual musical notes, do not speak. Repeat the chorus to fill the time.' }}
+          VOICE_INPUT: ${{ inputs.voice || 'Leda' }}
+          MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
+          MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
         run: |
           python github-live/generate_live_audio.py \
             --prompt "$PROMPT_INPUT" \
