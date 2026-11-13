@@ -6,7 +6,8 @@ import {fileURLToPath} from "node:url";
 export const MODEL_FAMILIES = Object.freeze({
   flash: ["gemini-flash-latest", "gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash"],
   flash_lite: ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
-  live: ["gemini-3.8-live", "gemini-3.1-flash-live-preview"]
+  live: ["gemini-3.8-live", "gemini-3.1-flash-live-preview"],
+  hydrogen: ["gemini-4-hydrogen"]
 });
 const CACHE_FILE = fileURLToPath(new URL("./model-fallbacks.json", import.meta.url));
 const COOLDOWN_MS = 6 * 3600 * 1000;
