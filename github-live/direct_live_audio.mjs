@@ -13,7 +13,7 @@ function argsFromCli() {
   const args = {
     prompt: "", voice: "Leda", model: "gemini-3.8-live",
     minSeconds: 3.5, targetSeconds: 30, maxSeconds: 120,
-    timeoutSeconds: 90, attempts: 2,
+    timeoutSeconds: 90, attempts: 2, maxTargetSeconds: null,
     output: "output/gemini-live.wav"
   };
   const raw = {};
@@ -28,7 +28,8 @@ function argsFromCli() {
     for (const [from, to] of [
       ["prompt", "prompt"], ["voice", "voice"], ["model", "model"],
       ["min_seconds", "minSeconds"], ["target_seconds", "targetSeconds"],
-      ["max_seconds", "maxSeconds"], ["timeout_seconds", "timeoutSeconds"]
+      ["max_seconds", "maxSeconds"], ["timeout_seconds", "timeoutSeconds"],
+      ["max_target_seconds", "maxTargetSeconds"]
     ]) if (request[from] !== undefined) args[to] = request[from];
   }
   for (const [from, to] of [
@@ -40,11 +41,13 @@ function argsFromCli() {
   for (const name of ["minSeconds", "targetSeconds", "maxSeconds", "timeoutSeconds", "attempts"]) {
     args[name] = Number(args[name]);
   }
+  if (args.maxTargetSeconds !== null) args.maxTargetSeconds = Number(args.maxTargetSeconds);
   if (!args.prompt || !args.voice) throw Error("Prompt and voice required");
   if (!(args.minSeconds > 0 && args.minSeconds <= args.maxSeconds &&
         args.targetSeconds > 0 && args.targetSeconds <= args.maxSeconds &&
         args.maxSeconds <= 300 && args.timeoutSeconds >= 5 &&
-        args.attempts >= 1 && args.attempts <= 3)) throw Error("Invalid duration / retries");
+        args.attempts >= 1 && args.attempts <= 3 &&
+        (args.maxTargetSeconds === null || (args.maxTargetSeconds >= args.minSeconds && args.maxTargetSeconds <= args.maxSeconds)))) throw Error("Invalid duration / retries");
   return args;
 }
 
@@ -128,7 +131,12 @@ function receiveCompleteTurn(args, key) {
             throw Error("Gemini Live turn complete but audio too short or invalid (" +
               (totalBytes / BYTES_PER_SECOND).toFixed(2) + " seconds)");
           }
-          stop(null, { pcm: Buffer.concat(pieces, totalBytes), totalSeconds: totalBytes / BYTES_PER_SECOND });
+          const fullSeconds = totalBytes / BYTES_PER_SECOND;
+          if (args.maxTargetSeconds !== null && fullSeconds > args.maxTargetSeconds) {
+            throw Error("Completed performance too long (" + fullSeconds.toFixed(2) +
+              "s, expected at most " + args.maxTargetSeconds + "s); retrying without trimming");
+          }
+          stop(null, { pcm: Buffer.concat(pieces, totalBytes), totalSeconds: fullSeconds });
         }
       } catch (e) { stop(e); }
     });
