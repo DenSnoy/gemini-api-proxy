@@ -1,0 +1,1 @@
+Trigger Gemini Live generation after enabling secure REST-model access diagnostics. Only complete WAV should be published.
