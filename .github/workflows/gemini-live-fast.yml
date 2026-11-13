@@ -7,7 +7,7 @@ on:
       - "github-live/fast-requests/*.json"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   generate:
@@ -21,6 +21,7 @@ jobs:
       - name: Generate finished WAV using built-in Node WebSocket
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           node --version
