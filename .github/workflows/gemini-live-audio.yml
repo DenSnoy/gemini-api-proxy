@@ -1,0 +1,71 @@
+name: Gemini Live — complete WAV
+
+on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "What Gemini Live should sing or say"
+        required: true
+        type: string
+        default: "Sing Jingle Bells in English for approximately 30 seconds. Use the familiar tune, steady cheerful rhythm and a cute high-pitched anime-style voice. Sing actual musical notes, do not speak or recite. Repeat the chorus to fill the time; no spoken introduction."
+      voice:
+        description: "Gemini Live voice (for example Leda, Aoede, Fenrir)"
+        required: true
+        type: string
+        default: Leda
+      model:
+        description: "Gemini Live model ID"
+        required: true
+        type: string
+        default: gemini-3.8-live
+      min_seconds:
+        description: "Minimum complete duration: if shorter, no file is published"
+        required: true
+        type: string
+        default: "25"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Generate and validate full Gemini Live WAV
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Google Gemini Live SDK
+        run: python -m pip install --disable-pip-version-check --upgrade google-genai
+
+      - name: Record complete Gemini Live turn
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PROMPT_INPUT: ${{ inputs.prompt }}
+          VOICE_INPUT: ${{ inputs.voice }}
+          MODEL_INPUT: ${{ inputs.model }}
+          MIN_SECONDS_INPUT: ${{ inputs.min_seconds }}
+        run: |
+          python github-live/generate_live_audio.py \
+            --prompt "$PROMPT_INPUT" \
+            --voice "$VOICE_INPUT" \
+            --model "$MODEL_INPUT" \
+            --min-seconds "$MIN_SECONDS_INPUT" \
+            --max-seconds 45 \
+            --attempts 2 \
+            --output output/gemini-live.wav
+
+      - name: Upload WAV only after successful full recording
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-live-complete-wav
+          path: output/gemini-live.wav
+          if-no-files-found: error
+          retention-days: 7
