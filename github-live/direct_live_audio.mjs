@@ -58,7 +58,11 @@ function setup(args) {
     systemInstruction: { parts: [{ text: (
       "You are a professional expressive voice actor. Perform the requested " +
       "script or original song in the exact language, voice style, emotion and " +
-      "pacing requested. No greetings, explanations or extra commentary."
+      "pacing requested. Aim for approximately " + args.targetSeconds +
+      " seconds of continuous performance, ending with a natural, complete " +
+      "final phrase. Control pitch, intonation, emotional dynamics, tempo and " +
+      "melody as directed. Never end abruptly. Never speak an introduction. " +
+      "No explanations or extra commentary."
     ) }] }
   } };
 }
@@ -135,18 +139,9 @@ function receiveCompleteTurn(args, key) {
   });
 }
 
-function wavFromCompletedTurn(pcm, targetSeconds) {
-  const cap = Math.floor(targetSeconds * RATE) * 2;
-  const body = Buffer.from(pcm.subarray(0, cap));
-  // Fade the end to avoid a click if a complete long answer is trimmed.
-  if (pcm.length > cap && body.length > 0) {
-    const fadeSamples = Math.min(4320, body.length / 2);
-    for (let i = 0; i < fadeSamples; i++) {
-      const offset = body.length - fadeSamples * 2 + i * 2;
-      const sample = body.readInt16LE(offset);
-      body.writeInt16LE(Math.round(sample * (fadeSamples - i - 1) / fadeSamples), offset);
-    }
-  }
+function wavFromCompletedTurn(pcm) {
+  // Preserve 100% of the complete Gemini Live answer. Never trim or fade.
+  const body = Buffer.from(pcm);
   const header = Buffer.alloc(44);
   header.write("RIFF", 0);
   header.writeUInt32LE(36 + body.length, 4);
@@ -173,7 +168,7 @@ async function main() {
   for (let attempt = 1; attempt <= args.attempts; attempt++) {
     try {
       const result = await receiveCompleteTurn(args, key);
-      const wav = wavFromCompletedTurn(result.pcm, args.targetSeconds);
+      const wav = wavFromCompletedTurn(result.pcm);
       fs.mkdirSync(path.dirname(args.output), { recursive: true });
       const temporary = args.output + ".partial";
       fs.writeFileSync(temporary, wav);
