@@ -1,4 +1,4 @@
-name: Gemini Live — WAV + MP3
+name: Gemini Live — MP3 + WAV
 
 on:
   push:
@@ -8,12 +8,12 @@ on:
   workflow_dispatch:
     inputs:
       prompt:
-        description: "What Gemini Live should sing or say"
+        description: "Gemini Live voice acting or singing prompt"
         required: true
         type: string
-        default: "Sing Jingle Bells in English for approximately 30 seconds. Use the familiar tune, steady cheerful rhythm and a cute high-pitched anime-style voice. Sing actual musical notes, do not speak or recite. Repeat the chorus to fill the time; no spoken introduction."
+        default: "Sing a cheerful original song for about 30 seconds, without an introduction."
       voice:
-        description: "Gemini Live voice (for example Leda, Aoede, Fenrir)"
+        description: "Gemini Live voice (Leda, Fenrir, Aoede, etc.)"
         required: true
         type: string
         default: Leda
@@ -23,7 +23,7 @@ on:
         type: string
         default: gemini-3.8-live
       min_seconds:
-        description: "Minimum complete duration: if shorter, no file is published"
+        description: "Minimum generated duration"
         required: true
         type: string
         default: "25"
@@ -33,66 +33,34 @@ permissions:
 
 jobs:
   generate:
-    name: Generate complete Gemini Live recording and MP3
+    name: Generate finished Gemini Live MP3 and WAV
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install lightweight WebSocket transport
-        run: python -m pip install --disable-pip-version-check websockets
+      - name: Install minimal WebSocket library
+        run: python -m pip install --disable-pip-version-check "websockets>=14,<19"
 
-      - name: Record complete Gemini Live turn
+      - name: Record complete Live audio
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          PROMPT_INPUT: ${{ inputs.prompt || 'Sing Jingle Bells in English for approximately 30 seconds. Use the familiar melody, steady cheerful rhythm and an adorable high-pitched anime-style voice. Sing actual musical notes, do not speak. Repeat the chorus to fill the time.' }}
-          VOICE_INPUT: ${{ inputs.voice || 'Leda' }}
-          MODEL_INPUT: ${{ inputs.model || 'gemini-3.8-live' }}
-          MIN_SECONDS_INPUT: ${{ inputs.min_seconds || '25' }}
+          GEMINI_API_KEY: \${{ secrets.GEMINI_API_KEY }}
+          PROMPT_INPUT: \${{ inputs.prompt || 'Sing a cheerful original song for about 30 seconds, without an introduction.' }}
+          VOICE_INPUT: \${{ inputs.voice || 'Leda' }}
+          MODEL_INPUT: \${{ inputs.model || 'gemini-3.8-live' }}
+          MIN_SECONDS_INPUT: \${{ inputs.min_seconds || '25' }}
         run: |
-          # On GitHub push, take the voice and prompt from the newest request.
-          # Workflow_dispatch user inputs still take priority for manual runs.
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            # One new JSON file in github-live/requests/ = one generation.
-            # Uses the file in this commit, never a stale prior request.
-            REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/requests/[^/]+\.json
-          python github-live/direct_live_audio.py \
-            --prompt "$PROMPT_INPUT" \
-            --voice "$VOICE_INPUT" \
-            --model "$MODEL_INPUT" \
-            --min-seconds "$MIN_SECONDS_INPUT" \
-            --max-seconds 120 \
-            --timeout-seconds 180 \
-            --target-seconds 30 \
-            --attempts 2 \
-            --output output/gemini-live.wav
-
-      - name: Convert completed recording to MP3 automatically
-        run: |
-          ffmpeg -nostdin -hide_banner -loglevel error -y \
-            -i output/gemini-live.wav -codec:a libmp3lame -b:a 192k \
-            output/gemini-live.mp3
-          test -s output/gemini-live.mp3
-
-      - name: Upload completed WAV and MP3
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gemini-live-complete-audio
-          path: |
-            output/gemini-live.mp3
-            output/gemini-live.wav
-          if-no-files-found: error
-          retention-days: 7
- | head -n 1 || true)"
+          if [[ "\${{ github.event_name }}" == "push" ]]; then
+            # For each new request, create ONE JSON file. Never reuse an old prompt.
+            REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/requests/[^/]+\.json$' | head -n 1 || true)"
             if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
-              echo "No JSON audio request was included in this commit" >&2
+              echo "No new JSON audio request found" >&2
               exit 1
             fi
             readarray -d '' -t REQUEST_SETTINGS < <(python - "$REQUEST_FILE" <<'PY'
@@ -104,9 +72,10 @@ jobs:
               sys.stdout.write(str(request[field]) + chr(0))
           PY
             )
-            PROMPT_INPUT="${REQUEST_SETTINGS[0]}"
-            VOICE_INPUT="${REQUEST_SETTINGS[1]}"
+            PROMPT_INPUT="\${REQUEST_SETTINGS[0]}"
+            VOICE_INPUT="\${REQUEST_SETTINGS[1]}"
           fi
+
           python github-live/direct_live_audio.py \
             --prompt "$PROMPT_INPUT" \
             --voice "$VOICE_INPUT" \
@@ -118,11 +87,20 @@ jobs:
             --attempts 2 \
             --output output/gemini-live.wav
 
-      - name: Upload WAV only after successful full recording
+      - name: Encode MP3 after completed WAV
+        run: |
+          ffmpeg -nostdin -hide_banner -loglevel error -y \
+            -i output/gemini-live.wav -codec:a libmp3lame -b:a 192k \
+            output/gemini-live.mp3
+          test -s output/gemini-live.mp3
+
+      - name: Upload completed audio (MP3 + WAV)
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: gemini-live-complete-wav
-          path: output/gemini-live.wav
+          name: gemini-live-complete-audio
+          path: |
+            output/gemini-live.mp3
+            output/gemini-live.wav
           if-no-files-found: error
           retention-days: 7
