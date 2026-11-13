@@ -1,0 +1,1 @@
+Run GitHub-only diagnosis of supported Gemini API authentication header vs query and v1/v1beta. Attempt complete Gemini Live recording only if REST preflight succeeds.
