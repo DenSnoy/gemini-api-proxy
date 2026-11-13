@@ -31,7 +31,11 @@ function codeOf(error) {
 }
 function canTryAnotherModel(error) {
   const code = codeOf(error);
-  if ([400,401,403,422].includes(code)) return false; // invalid prompt, key, billing or permissions
+  if ([401,403,422].includes(code)) return false; // bad key, billing or permissions
+  if (code === 400) {
+    // Only a model-related 400 warrants fallback; never retry an invalid user prompt.
+    return /model.*not found|model.*not supported|unsupported model|not available|not found for api|bidi.*not supported/i.test(String(error?.message||""));
+  }
   if ([404,429,500,502,503,504].includes(code)) return true;
   const s = String(error?.message || "").toLowerCase();
   if (/invalid api key|permission denied|billing|safety|blocked|policy|prompt|no audio|too short|too long|timed out|timeout/i.test(s)) return false;
