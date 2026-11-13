@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-13",
+  "documentation_checked_at": "2026-11-13",
+  "api_probe_at": null,
+  "scope": "Gemini API free tier; docs show free pricing, but actual per-project availability unverified",
+  "no_paid_models": true,
+  "text": {
+    "mode": "quality",
+    "priority": [
+      "gemini-3.8-flash",
+      "gemini-3.7-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash-lite"
+    ],
+    "manual_override": null
+  },
+  "live_audio": {
+    "priority": [
+      "gemini-3.8-live",
+      "gemini-3.1-flash-live-preview"
+    ],
+    "manual_override": null,
+    "format": "wav_pcm_s16le_24000_mono"
+  },
+  "tts_audio": {
+    "priority": [
+      "gemini-3.8-flash-tts",
+      "gemini-3.8-flash-lite-tts"
+    ],
+    "manual_override": null,
+    "enabled": false
+  },
+  "status": {
+    "gemini-3.8-flash": "free_tier_docs_yes_api_unverified",
+    "gemini-3.7-flash": "free_tier_docs_unverified",
+    "gemini-3.6-flash": "free_tier_docs_unverified",
+    "gemini-3.5-flash-lite": "free_tier_docs_yes_api_unverified",
+    "gemini-3.8-live": "free_tier_docs_yes_api_generation_tested",
+    "gemini-3.1-flash-live-preview": "free_tier_docs_yes_api_unverified",
+    "gemini-3.8-flash-tts": "free_tier_docs_yes_api_unverified",
+    "gemini-3.8-flash-lite-tts": "free_tier_docs_yes_api_unverified"
+  },
+  "docs": [
+    "https://ai.google.dev/gemini-api/docs/models",
+    "https://ai.google.dev/gemini-api/docs/pricing",
+    "https://ai.google.dev/gemini-api/docs/deprecations",
+    "https://ai.google.dev/api/models"
+  ],
+  "refresh_policy": {
+    "timing": "AFTER delivering answer/link in same active turn; never claim background work",
+    "max_checks_per_turn": 1,
+    "verify_pricing_and_account": true,
+    "prefer_latest_verified_free": true,
+    "skip_change_if_unverified": true,
+    "log_only_changes": true
+  },
+  "runtime_constraints": {
+    "deployed_mcp_text_model": "gemini-3.5-flash-lite",
+    "deployed_mcp_live_model": "gemini-3.8-live",
+    "deployed_mcp_model_override_supported": false,
+    "note": "Priorities are recommendations until MCP Worker is upgraded/redeployed; current ask_gemini has no model arg."
+  }
+}
