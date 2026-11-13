@@ -26,5 +26,10 @@ jobs:
           node --check github-live/direct_gemini_text.mjs
           node --check github-live/direct_live_audio.mjs
           node --check github-live/test_model_router.mjs
+          node --check github-live/direct_gemini_decision.mjs
+          node --check github-live/test_direct_gemini_decision.mjs
+          node --check github-live/refresh_model_catalog.mjs
       - name: Verify routing behavior offline, no inference
-        run: node github-live/test_model_router.mjs
+        run: |
+          node github-live/test_model_router.mjs
+          node github-live/test_direct_gemini_decision.mjs
