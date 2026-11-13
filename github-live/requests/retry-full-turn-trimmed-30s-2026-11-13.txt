@@ -1,0 +1,1 @@
+Generate Jingle Bells with Leda using direct Gemini Live with the confirmed valid key. Wait for a full turn (up to 120 seconds of audio), then publish 30-second WAV from the completed recording.
