@@ -89,7 +89,7 @@ async def live_turn(args, key):
                 if data.get("error"):
                     error = data["error"]
                     raise RuntimeError("Google Live: " + str(error.get("message", error))[:250])
-                if data.get("setupComplete"):
+                if "setupComplete" in data:
                     ready = True
                     await ws.send(json.dumps({
                         "clientContent": {
