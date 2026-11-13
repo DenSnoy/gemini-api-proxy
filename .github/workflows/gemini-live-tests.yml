@@ -3,11 +3,11 @@ name: Gemini Live recorder tests
 on:
   pull_request:
     paths:
-      - "github-live/**"
+      - "github-live/*.py"
       - ".github/workflows/gemini-live-*.yml"
   push:
     paths:
-      - "github-live/**"
+      - "github-live/*.py"
       - ".github/workflows/gemini-live-*.yml"
 
 permissions:
