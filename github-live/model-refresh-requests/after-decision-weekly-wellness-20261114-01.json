@@ -1,0 +1,6 @@
+{
+  "reason": "after_user_delivery",
+  "model": "gemini-decision-1",
+  "transport": "cloudflare",
+  "topic": "general sexual health"
+}
