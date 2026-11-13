@@ -1,0 +1,46 @@
+name: Gemini Live — FAST (no installs)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "github-live/fast-requests/*.json"
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    name: Direct Gemini Live (zero dependencies)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Get request and script
+        uses: actions/checkout@v4
+
+      - name: Generate finished WAV using built-in Node WebSocket
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        shell: bash
+        run: |
+          node --version
+          REQUEST_FILE="$(git show --pretty=format: --name-only HEAD | grep -E '^github-live/fast-requests/[^/]+\.json$' | head -n 1 || true)"
+          if [[ -z "$REQUEST_FILE" || ! -f "$REQUEST_FILE" ]]; then
+            echo "No new fast audio request in commit" >&2
+            exit 1
+          fi
+          node github-live/direct_live_audio.mjs \
+            --request-file "$REQUEST_FILE" \
+            --attempts 2 \
+            --timeout-seconds 90 \
+            --output output/gemini-live.wav
+
+      - name: Publish only complete WAV
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gemini-live-fast-complete-wav
+          path: output/gemini-live.wav
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
