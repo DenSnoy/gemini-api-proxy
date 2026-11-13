@@ -9,7 +9,8 @@ function readRequest(file) {
   const r = JSON.parse(fs.readFileSync(file, "utf8"));
   if (!r || typeof r !== "object" || Array.isArray(r)) throw Error("Request must be JSON object");
   const mode = r.mode ?? r.family ?? "flash";
-  if (!(mode === "flash" || mode === "flash_lite")) throw Error("Text mode must be flash or flash_lite");
+  if (!(mode === "flash" || mode === "flash_lite" || mode === "hydrogen")) throw Error("Text mode must be flash, flash_lite or hydrogen");
+  if (mode === "hydrogen" && r.allow_paid_hydrogen !== true) throw Error("Hydrogen requires explicit allow_paid_hydrogen:true; never selected automatically");
   if (typeof r.prompt !== "string" || !r.prompt.trim() || r.prompt.length > 200000) {
     throw Error("Prompt must be non-empty text under 200000 characters");
   }
@@ -38,6 +39,8 @@ async function generate(req, apiKey, model) {
   const config = {maxOutputTokens:req.tokens};
   if (model === "gemini-2.5-flash") {
     config.thinkingConfig = {thinkingBudget:0};
+  } else if (req.mode === "hydrogen") {
+    config.thinkingConfig = {thinkingLevel:"low"};
   } else if (req.mode === "flash" && /^gemini-3\.(8|7|6|5)-flash$/.test(model)) {
     config.thinkingConfig = {thinkingLevel:"low"};
   }
