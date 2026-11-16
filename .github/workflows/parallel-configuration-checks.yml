@@ -1,0 +1,24 @@
+name: Parallel resource configuration checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/**'
+      - '.github/tests/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+      - '.github/tests/**'
+permissions:
+  contents: read
+jobs:
+  resource-configuration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - run: python -m unittest discover -s .github/tests -v

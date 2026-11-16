@@ -11,6 +11,10 @@ permissions:
 
 jobs:
   refresh:
+    concurrency:
+      group: gemini-model-catalog-${{ github.repository }}
+      cancel-in-progress: false
+      queue: max
     name: Read Gemini models.list and save changed catalogue
     runs-on: ubuntu-latest
     timeout-minutes: 4
@@ -32,3 +36,4 @@ jobs:
           path: output/model-catalog-refresh.json
           if-no-files-found: ignore
           retention-days: 7
+
