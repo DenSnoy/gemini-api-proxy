@@ -98,7 +98,7 @@ function geminiEdgeThinkingConfig(model,level) {
   if(level==="auto")return null;
   if(level===undefined){
     // Old clients retain their old latency behavior.
-    if(/^gemini-3\\.(8|7|6|5)-flash$/.test(model))return {thinkingLevel:"low"};
+    if(/^gemini-3\.(8|7|6|5)-flash$/.test(model))return {thinkingLevel:"low"};
     if(model==="gemini-2.5-flash")return {thinkingBudget:0};
     return null;
   }
