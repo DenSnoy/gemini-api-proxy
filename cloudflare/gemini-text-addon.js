@@ -177,7 +177,8 @@ async function geminiEdgeGenerate(payload,env,ctx,forcedMode=null) {
 async function geminiEdgeAskMCP(question,env) {
   try{
     const payload=JSON.parse(question.slice(GEMINI_EDGE_MARKER.length));
-    if(payload?.mode==="live" && payload.thinking_level!==undefined && payload.thinking_level!=="auto") {
+    const liveThinking=payload?.thinking_level??payload?.thinkingLevel;
+    if(payload?.mode==="live" && liveThinking!==undefined && String(liveThinking).toLowerCase()!=="auto") {
       throw geminiEdgeError(400,"The default Gemini Live model does not support thinking_level; use auto");
     }
     const data=await geminiEdgeGenerate(payload,env,null);
