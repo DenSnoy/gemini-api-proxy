@@ -18,6 +18,38 @@ Call the existing connected `ask_gemini({question})` tool with the special JSON 
 
 Response is a tool text block containing JSON with `answer`/ `answers`, resolved model, and `elapsed_ms`. The existing unmarked `ask_gemini` calls continue to work unchanged.
 
+## Model-aware thinking controls
+
+Both the marked ChatGPT MCP envelope and authenticated `/v1/text` accept optional
+`thinking_level`: `"auto"`, `"minimal"`, `"low"`, `"medium"`, `"high"`.
+`"auto"` leaves the level to Google's model default. When omitted, the Worker
+preserves legacy behavior for existing callers. An explicit level is validated
+against the selected model; unsupported levels return a clear 400 error rather
+than being silently ignored. Google is the final authority on whether a new
+or account-specific model supports a given level.
+
+```json
+{"mode":"flash","model":"gemini-3.8-flash","exact_model":true,"thinking_level":"high","prompt":"Напиши Python-функцию для проверки палиндрома"}
+```
+
+- Gemini 3.8/3.7 Flash: `low`, `medium`, `high`; Gemini 3.6/3.5 Flash and
+  3.5/3.1 Flash-Lite: also `minimal`. The moving `-latest` aliases
+  conservatively allow `low`/`medium`/`high`; pin a supported model
+  if you need `minimal`.
+- Gemini 2.5 Flash / Flash-Lite: use the legacy `thinkingBudget` parameter;
+  levels map to 1024/8192/24576 respectively.
+- Gemini 4 Hydrogen: `low`/`medium`/`high` are forwarded for explicit
+  user-approved requests; Google API compatibility and billing may vary.
+  Hydrogen is **never** tried as a Flash fallback.
+- Gemini Decision 1 and the currently routed default Gemini Live voice model
+  do not support this setting. Explicit non-`auto` levels are rejected;
+  the existing specialized Live audio controls remain unchanged.
+- `xhigh` is **not** a documented `thinkingLevel` value in the
+  Google GenerateContent API. No `xhigh` support is claimed.
+- Text replies include `thinking_level` and `applied_thinking_config`
+  for inspection. A successful model response is still needed to confirm
+  that the upstream accepted the setting.
+
 ## Direct HTTP API
 
 Protected by `Authorization: Bearer <MCP_ACCESS_TOKEN>` (an existing Cloudflare secret). **Never put the token in GitHub, prompts, or client-side apps.**
