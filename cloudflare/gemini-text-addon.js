@@ -7,6 +7,22 @@ const GEMINI_EDGE_MODELS = Object.freeze({
   flash_lite: ["gemini-flash-lite-latest","gemini-3.5-flash-lite","gemini-3.1-flash-lite","gemini-2.5-flash-lite"],
   hydrogen: ["gemini-4-hydrogen"]
 });
+// Per-model compatibility. Unknown models use the Google default unless the caller explicitly requests a level.
+const GEMINI_EDGE_THINKING_LEVELS = Object.freeze({
+  "gemini-flash-latest":["low","medium","high"],
+  "gemini-flash-lite-latest":["low","medium","high"],
+  "gemini-3.8-flash":["low","medium","high"],
+  "gemini-3.7-flash":["low","medium","high"],
+  "gemini-3.6-flash":["minimal","low","medium","high"],
+  "gemini-3.5-flash":["minimal","low","medium","high"],
+  "gemini-3.5-flash-lite":["minimal","low","medium","high"],
+  "gemini-3.1-flash-lite":["minimal","low","medium","high"],
+  "gemini-2.5-flash":["low","medium","high"],
+  "gemini-2.5-flash-lite":["low","medium","high"],
+  // Hydrogen's availability is account-specific: Google validates the level upstream.
+  "gemini-4-hydrogen":["low","medium","high"]
+});
+const GEMINI_EDGE_BUDGET_25 = Object.freeze({low:1024,medium:8192,high:24576});
 const GEMINI_EDGE_HEADERS = {"Content-Type":"application/json","Cache-Control":"no-store","X-Content-Type-Options":"nosniff"};
 
 function geminiEdgeError(status, message) {
@@ -20,9 +36,16 @@ function geminiEdgeJSON(data, status = 200) {
 function geminiEdgeValidate(payload, forcedMode = null) {
   if (!payload || typeof payload!=="object" || Array.isArray(payload)) throw geminiEdgeError(400,"Expected JSON object");
   const mode=forcedMode || payload.mode || "flash";
+  // "auto" means ask Google to use its own default. Absent means preserve legacy defaults.
+  const rawLevel=payload.thinking_level??payload.thinkingLevel;
+  if(rawLevel!==undefined && (typeof rawLevel!=="string" || !["auto","minimal","low","medium","high"].includes(rawLevel.toLowerCase()))) {
+    throw geminiEdgeError(400,"thinking_level must be auto, minimal, low, medium or high");
+  }
+  const thinkingLevel=rawLevel===undefined?undefined:rawLevel.toLowerCase();
   if (!["flash","flash_lite","hydrogen","decision"].includes(mode)) throw geminiEdgeError(400,"Unsupported mode");
   if (mode==="hydrogen" && payload.allow_paid_hydrogen!==true) throw geminiEdgeError(403,"Hydrogen requires explicit paid billing consent");
   if (mode==="decision") {
+    if(thinkingLevel!==undefined && thinkingLevel!=="auto")throw geminiEdgeError(400,"Decision 1 does not support thinking_level");
     const input=payload.input;
     if (!(typeof input==="string"&&input.trim()) && !(Array.isArray(input)&&input.length>0&&input.length<=24)) throw geminiEdgeError(400,"Decision input required");
     const q=payload.questions;
@@ -40,7 +63,7 @@ function geminiEdgeValidate(payload, forcedMode = null) {
   if (explicit!==null&&!GEMINI_EDGE_MODELS[mode].includes(explicit)) throw geminiEdgeError(400,"Model belongs to another family");
   const tokens=payload.max_output_tokens===undefined?(mode==="flash_lite"?1024:2048):Number(payload.max_output_tokens);
   if (!Number.isInteger(tokens)||tokens<64||tokens>8192) throw geminiEdgeError(400,"Invalid max_output_tokens");
-  return {mode,prompt:payload.prompt,explicit,tokens,exact:payload.exact_model===true,stream:payload.stream===true};
+  return {mode,prompt:payload.prompt,explicit,tokens,exact:payload.exact_model===true,stream:payload.stream===true,thinkingLevel};
 }
 async function geminiEdgeGetPreferred(mode,env) {
   if(!env.AUDIO_KV)return null;
@@ -71,10 +94,23 @@ function geminiEdgeCanFallback(e) {
   if(n===400)return /model.*(?:unsupported|not found|unavailable)|not found for api/i.test(e.message||"");
   return false;
 }
+function geminiEdgeThinkingConfig(model,level) {
+  if(level==="auto")return null;
+  if(level===undefined){
+    // Old clients retain their old latency behavior.
+    if(/^gemini-3\\.(8|7|6|5)-flash$/.test(model))return {thinkingLevel:"low"};
+    if(model==="gemini-2.5-flash")return {thinkingBudget:0};
+    return null;
+  }
+  const supported=GEMINI_EDGE_THINKING_LEVELS[model];
+  if(!supported || !supported.includes(level))throw geminiEdgeError(400,"Thinking level "+level+" is not supported for "+model);
+  if(model.startsWith("gemini-2.5-"))return {thinkingBudget:GEMINI_EDGE_BUDGET_25[level]};
+  return {thinkingLevel:level.toUpperCase()};
+}
 async function geminiEdgeModelRequest(model,req,env) {
   const generationConfig={maxOutputTokens:req.tokens};
-  if(/^gemini-3\.(8|7|6|5)-flash$/.test(model)) generationConfig.thinkingConfig={thinkingLevel:"low"};
-  if(model==="gemini-2.5-flash")generationConfig.thinkingConfig={thinkingBudget:0};
+  const thinking=geminiEdgeThinkingConfig(model,req.thinkingLevel);
+  if(thinking)generationConfig.thinkingConfig=thinking;
   const endpoint="https://generativelanguage.googleapis.com/v1beta/models/"+encodeURIComponent(model)+
     (req.stream?":streamGenerateContent?alt=sse":":generateContent");
   const start=Date.now();
@@ -95,7 +131,7 @@ async function geminiEdgeModelRequest(model,req,env) {
   const data=await res.json();
   const answer=(data.candidates?.[0]?.content?.parts||[]).filter(x=>typeof x.text==="string").map(x=>x.text).join("\n").trim();
   if(!answer)throw geminiEdgeError(422,"Google returned no text");
-  return {mode:req.mode,model,answer,elapsed_ms:Date.now()-start,usage:data.usageMetadata||null};
+  return {mode:req.mode,model,answer,elapsed_ms:Date.now()-start,usage:data.usageMetadata||null,thinking_level:req.thinkingLevel??"legacy",applied_thinking_config:generationConfig.thinkingConfig||null};
 }
 async function geminiEdgeGenerate(payload,env,ctx,forcedMode=null) {
   if(!env.GEMINI_API_KEY)throw geminiEdgeError(503,"Gemini secret missing");
@@ -141,6 +177,9 @@ async function geminiEdgeGenerate(payload,env,ctx,forcedMode=null) {
 async function geminiEdgeAskMCP(question,env) {
   try{
     const payload=JSON.parse(question.slice(GEMINI_EDGE_MARKER.length));
+    if(payload?.mode==="live" && payload.thinking_level!==undefined && payload.thinking_level!=="auto") {
+      throw geminiEdgeError(400,"The default Gemini Live model does not support thinking_level; use auto");
+    }
     const data=await geminiEdgeGenerate(payload,env,null);
     return textResult(JSON.stringify(data));
   }catch(e){
